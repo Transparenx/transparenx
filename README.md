@@ -1,10 +1,10 @@
-# Organization Accountability Project: Tax Expenditure Tracking
+# NGO Donation Tracking Project: TransparentX
 ==============================================================
 
 ## Overview
 -----------
 
-Our team has developed the Organization Accountability Project, focusing on creating a transparent and confidential tax expenditure tracking system. This is achieved by leveraging the publicly accessible and immutable ledger: XRP Ledger. This project consists of two main portals: a **Tax Payment Portal** and a **Gov-Spending Tracker Portal**. Our system ensures the privacy of individual transactions using differential privacy, while making the allocation of funds from the government pool publicly accessible. A graph based view is used to track how money moves from source to the vendors(paid by the government).
+Our team has developed TransparentX, an NGO donation tracking system focused on transparency and accountability for charitable organizations. The platform enables donors to track their contributions and see exactly how their donations are allocated and spent by the NGO. As an example, the system can be used by organizations like the World Health Organization (WHO) to provide real-time visibility into donation flows and project funding.
 
 ## Tech Stack
 -----------
@@ -13,56 +13,55 @@ Our team has developed the Organization Accountability Project, focusing on crea
 ## Features
 ------------
 
-### 1. Tax Payment Portal
+### 1. Donation Portal
 
-- **Income Entry**: Users can input the amount of taxes they pay.
-- **Confidential Transactions**: All transactions from users are processed using differential privacy to protect individual financial information.
-- **Government Pool**: All funds collected are pooled together, ensuring that individual contributions remain confidential.
+- **Donation Entry**: Donors can submit their contributions to the NGO.
+- **Confidential Transactions**: All donations are processed securely, protecting donor privacy.
+- **Donation Pool**: All funds are pooled, ensuring transparency in how donations are managed.
 
-### 2. Gov-Spending Tracker Portal
+### 2. NGO Spending Tracker Portal
 
-- **Public Allocation**: The distribution of funds from the government pool to various development projects is made publicly available.
-- **Project Tracking**: Users can view where their taxes are being allocated, focusing on state, local, or federal development projects.
-- **Transparency**: Our system provides clear insights into government spending, enhancing accountability and transparency.
+- **Public Allocation**: The distribution of donations to various projects (e.g., health initiatives, emergency relief) is made publicly available.
+- **Project Tracking**: Donors and the public can view how funds are allocated to specific projects, such as those run by WHO.
+- **Transparency**: The system provides clear insights into NGO spending, enhancing trust and accountability.
 
 ### Privacy and Security
 
-- **Differential Privacy**: We ensure that individual transactions are protected and cannot be reverse-engineered to identify specific users.
-- **Public Data**: Only the aggregated funds and their allocations are publicly visible, maintaining the privacy of individual contributors.
+- **Donor Privacy**: Individual donor information is protected and not publicly disclosed.
+- **Public Data**: Only aggregated donation amounts and their allocations are visible, maintaining donor confidentiality.
 
 ### Focus
 
-- **State, Local, and Federal Projects**: Our system is designed to track expenditures on development projects at these levels, excluding larger agencies like the FBI, CIA, and NSA.
-- **Dual Currency Support**: The system accommodates both traditional currency and digital coins, though the coins themselves do not hold intrinsic value within the system.
+- **NGO Projects**: The system is designed to track expenditures on health, education, and relief projects, with WHO as a prime example.
+- **Multi-Currency Support**: Donations can be made in both traditional and digital currencies.
 
 ## Goals
 --------
 
-- **Enhance Transparency**: We aim to provide citizens with a clear view of how their taxes are being used.
-- **Protect Privacy**: We safeguard individual financial information through differential privacy.
-- **Promote Accountability**: We encourage responsible government spending by making allocations publicly accessible.
+- **Enhance Transparency**: Provide donors with a clear view of how their contributions are used.
+- **Protect Donor Privacy**: Safeguard individual donor information.
+- **Promote Accountability**: Encourage responsible NGO spending by making allocations publicly accessible.
 
 ## Usage
 -----
 
-We intend for this project to be used by individuals and government entities seeking to improve transparency and accountability in tax expenditure tracking. It offers a unique blend of privacy protection and public oversight, making it suitable for state, local, and federal development projects.
-
+This project is intended for NGOs, donors, and oversight bodies seeking to improve transparency and accountability in donation management. It offers a unique blend of privacy protection and public oversight, making it suitable for organizations like WHO and similar NGOs.
 
 ## Accountability Framework
 -------------------------
 
 Our project is built around an accountability framework that ensures:
 
-- **Transparency in Spending**: Clear visibility into how funds are allocated.
-- **Public Oversight**: Citizens can monitor and provide feedback on government spending.
-- **Responsible Governance**: Encourages government entities to manage funds responsibly and efficiently.
+- **Transparency in Spending**: Clear visibility into how donations are allocated.
+- **Public Oversight**: Donors and the public can monitor and provide feedback on NGO spending.
+- **Responsible Governance**: Encourages NGOs to manage funds responsibly and efficiently.
 
 ## Accessible Portals
 -------------------
 
-- **Admin Portal**: Accessible for administrative tasks and oversight.
-- **Transaction Portal**: Accessible for users to file their taxes.
-- **Financial transaction Visualizer**: Accessible for users to keep a track of where the tax money is being disbursed.
+- **Admin Portal**: For NGO administrators to manage and oversee donations and spending.
+- **Donation Portal**: For donors to make contributions.
+- **Financial Transaction Visualizer**: For tracking how donations are disbursed to projects.
   
 ## Demo
 -------------------
@@ -75,7 +74,7 @@ Our project is built around an accountability framework that ensures:
 
 ## Installation and Running Instructions
 -------------------
-To run the Organization Accountability Project, follow these steps:
+To run TransparentX, follow these steps:
 
 ### Step 1: Install Requirements
 
@@ -107,7 +106,7 @@ python3 app.py
 Open a web browser and navigate to:
 
 ```
-http://127.0.0.1:6969
+http://127.0.0.1:80
 ```
 ### You can also view this hosted on 
 

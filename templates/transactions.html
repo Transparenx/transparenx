@@ -7,6 +7,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>TransparenX - Transaction History</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="icon" type="image/png" href="{{ url_for('static', filename='favicon.png') }}">
 </head>
 <body class="bg-gray-100 min-h-screen p-8">
     <div class="header">
@@ -35,7 +36,7 @@
         </div>
         <div class="nav-links">
             <a href="/" class="nav-link">Home</a>
-            <a href="/department-tracking" class="nav-link">Visualization</a>
+            <a href="/programme-tracking" class="nav-link">Visualization</a>
             <a href="/transactions" class="nav-link active">Transactions</a>
             <a href="/admin" class="nav-link">Admin</a>
         </div>
@@ -82,25 +83,25 @@
     </div>
 
     <script>
-        const departments = [
-            { id: 'tax_pool', name: 'Tax Pool' },
-            { id: 'government', name: 'Government Wallet' },
-            { id: 'dept_transport', name: 'Department of Transport' },
-            { id: 'dept_labor', name: 'Department of Labor' },
-            { id: 'dept_education', name: 'Department of Education' },
-            { id: 'penn_dept_transport', name: 'Pennsylvania State Department of Transport' },
-            { id: 'penn_dept_labor', name: 'Pennsylvania State Department of Labor' },
-            { id: 'penn_dept_education', name: 'Pennsylvania State Department of Education'},
-            { id: 'pitt_dept_transport', name: 'Pittsburgh City Department of Transport' },
-            { id: 'pitt_dept_labor', name: 'Pittsburgh City Department of Labor' },
-            { id: 'pitt_dept_education', name: 'Pittsburgh City Department of Education'},
-            { id: 'squirrel_hill_dept_transport', name: 'Squirrel Hill Department of Transport' },
+        const programmes = [
+            { id: 'donation_pool', name: 'Donation Pool' },
+            { id: 'who', name: 'WHO' },
+            { id: 'universal_health_coverage', name: 'Universal Health Coverage' },
+            { id: 'health_emergencies', name: 'Health Emergencies' },
+            { id: 'business_operations', name: 'Business Operations' },
+            { id: 'primary_health_care', name: 'Primary Health Care' },
+            { id: 'emergency_preparedness', name: 'Emergency Preparedness' },
+            { id: 'finance', name: 'Finance'},
+            { id: 'health_workforce', name: 'Health Workforce' },
+            { id: 'emergency_response', name: 'Emergency Response' },
+            { id: 'procurement_logistics', name: 'Procurement & Logistics' },
+            { id: 'digital_health', name: 'Digital Health' },
         ];
 
         // Populate wallet select dropdown
         function populateWalletSelect() {
             const select = document.getElementById('walletSelect');
-            departments.forEach(dept => {
+            programmes.forEach(dept => {
                 select.innerHTML += `<option value="${dept.id}">${dept.name}</option>`;
             });
         }

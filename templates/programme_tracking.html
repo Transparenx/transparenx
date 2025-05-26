@@ -6,6 +6,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>TransparenX - Visualization</title>
+    <link rel="icon" type="image/png" href="{{ url_for('static', filename='favicon.png') }}">
     <script src="https://d3js.org/d3.v7.min.js"></script>
     <style>
         /* Add gradient definitions */
@@ -175,7 +176,7 @@
         </div>
         <div class="nav-links">
             <a href="/" class="nav-link">Home</a>
-            <a href="/department-tracking" class="nav-link active">Visualization</a>
+            <a href="/programme-tracking" class="nav-link active">Visualization</a>
             <a href="/transactions" class="nav-link">Transactions</a>
             <a href="/admin" class="nav-link">Admin</a>
         </div>
@@ -238,28 +239,29 @@
                 .attr("offset", "100%")
                 .attr("stop-color", "var(--primary)");
 
+                const main_programmes = ['universal_health_coverage', 'health_emergencies', 'business_operations']
+                const secondary_programmes = ['primary_health_care', 'emergency_preparedness', 'finance']
+                const tertiary_programmes = ['health_workforce', 'emergency_response', 'procurement_logistics', 'digital_health']
+
             // Assign levels to nodes
             data.root.children.forEach(node => {
                 console.log("Processing node:", node);
-                if (node.id === 'tax_pool') {
+                if (node.id === 'donation_pool') {
                     node.level = 0;
-                } else if (node.id === 'government') {
+                } else if (node.id === 'who') {
                     node.level = 1;
-                } else if (node.id.startsWith('penn_')) {
+                } else if (main_programmes.includes(node.id)) {
+                    node.level = 2;
+                } else if (secondary_programmes.includes(node.id)) {
                     node.level = 3;
-                } else if (node.id.startsWith('pitt_')) {
+                } else if (tertiary_programmes.includes(node.id)) {
                     node.level = 4;
-                } else if (node.id.startsWith('squirrel_')) {
-                    node.level = 5;
                 } else if (node.id === 'exit_pool') {
                     node.level = 6;
-                } else if (node.id.startsWith('dept')){
-                    node.level = 2; // Any other nodes
-                }
-                else
-                {
+                } else {
                     node.level = 7;
                 }
+                console.log("Node level:", node.id, node.level);
             });
 
             // Sort nodes by level
@@ -279,29 +281,25 @@
                     const node = d.data;
                     d.y = 150 + (node.level * 180);  // Keep horizontal spacing
                     
-                    if (node.id === 'tax_pool') {
+                    if (node.id === 'donation_pool') {
                         d.x = height * 0.2;  // Moved up
-                    } else if (node.id === 'government') {
-                        d.x = height * 0.35;  // More space between tax_pool and gov
+                    } else if (node.id === 'who') {
+                        d.x = height * 0.35;  
                     } else if (node.id === 'exit_pool') {
                         d.x = height * 0.8;  // Moved further down
-                    } else if (node.id.startsWith('penn_')) {
-                        const pennDepts = data.root.children.filter(n => n.id.startsWith('penn_'));
-                        const index = pennDepts.findIndex(n => n.id === node.id);
+                    } else if (secondary_programmes.includes(node.id)) {
+                        const secondaryDepts = data.root.children.filter(n => secondary_programmes.includes(n.id));
+                        const index = secondaryDepts.findIndex(n => n.id === node.id);
                         d.x = height * 0.45 + (index * 80);  // Start lower
-                    } else if (node.id.startsWith('pitt_')) {
-                        const pittDepts = data.root.children.filter(n => n.id.startsWith('pitt_'));
-                        const index = pittDepts.findIndex(n => n.id === node.id);
-                        d.x = height * 0.65 + (index * 80);  // More space after Penn depts
-                    } else if (node.id.startsWith('dept_')) {
-                        // Handle regular departments
-                        const regularDepts = data.root.children.filter(n => n.id.startsWith('dept_'));
+                    } else if (tertiary_programmes.includes(node.id)) {
+                        const tertiaryDepts = data.root.children.filter(n => tertiary_programmes.includes(n.id));
+                        const index = tertiaryDepts.findIndex(n => n.id === node.id);
+                        d.x = height * 0.65 + (index * 80);  
+                    } else if (main_programmes.includes(node.id)) {
+                        // Handle regular programmes
+                        const regularDepts = data.root.children.filter(n => main_programmes.includes(n.id));
                         const index = regularDepts.findIndex(n => n.id === node.id);
-                        d.x = height * 0.25 + (index * 80);  // Position between tax_pool and Penn depts
-                    } else if (node.id.startsWith('squirrel_')) {
-                        const squirrelDepts = data.root.children.filter(n => n.id.startsWith('squirrel_'));
-                        const index = squirrelDepts.findIndex(n => n.id === node.id);
-                        d.x = height * 0.75 + (index * 80);  // Position between Pitt and exit_pool
+                        d.x = height * 0.25 + (index * 80);  
                     } else {
                         d.x = height / 2;  // Fallback position
                     }

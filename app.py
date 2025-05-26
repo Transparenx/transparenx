@@ -16,7 +16,7 @@ from xrpl.utils import xrp_to_drops
 app = Flask(__name__)
 
 # ------------------- XRPL TAX SYSTEM CLASS -------------------
-class XRPLTaxSystem:
+class XRPLCharitySystem:
     def __init__(self):
         """
         Initialize the XRPL client and either load existing wallets from .env
@@ -29,23 +29,23 @@ class XRPLTaxSystem:
         self.client = JsonRpcClient("https://s.devnet.rippletest.net:51234")
 
         # Initialize system wallets (either from .env or generate new ones)
-        self.tax_pool = self._get_or_create_wallet('TAX_POOL')
+        self.donation_pool = self._get_or_create_wallet('DONATION_POOL')
         self.exit_pool = self._get_or_create_wallet('EXIT_POOL')
-        self.gov_wallet = self._get_or_create_wallet('GOV_WALLET')
+        self.ngo_wallet = self._get_or_create_wallet('NGO_WALLET')
         
-        # Department wallet IDs
-        department_ids = [
-            "dept_transport", "dept_labor", "dept_education",
-            "penn_dept_transport", "penn_dept_labor", "penn_dept_education",
-            "pitt_dept_transport", "pitt_dept_labor", "pitt_dept_education",
-            "squirrel_hill_dept_transport"
+        # Programme wallet IDs
+        programme_ids = [
+            "universal_health_coverage", "health_emergencies", "business_operations",
+            "primary_health_care", "emergency_preparedness", "finance",
+            "health_workforce", "emergency_response", "procurement_logistics",
+            "digital_health"
         ]
         
-        # Initialize department wallets
-        self.department_wallets = {}
-        for dept_id in department_ids:
+        # Initialize programme wallets
+        self.programme_wallets = {}
+        for dept_id in programme_ids:
             env_key = f"WALLET_{dept_id.upper()}"
-            self.department_wallets[dept_id] = self._get_or_create_wallet(env_key)
+            self.programme_wallets[dept_id] = self._get_or_create_wallet(env_key)
 
     def _get_or_create_wallet(self, env_key: str) -> Wallet:
         """
@@ -97,34 +97,34 @@ class XRPLTaxSystem:
             return 0.0
 
 
-    def process_tax_payment(self, amount_xrp: float, tax_payer_id: str):
+    def process_donation(self, amount_xrp: float, donor_id: str):
         """
-        Process a tax payment by sending XRP from tax pool to government wallet.
+        Process adonation by sending XRP from donation pool to ngo wallet.
         Args:
             amount_xrp: Amount of XRP to pay
-            tax_payer_id: ID of the department paying tax
+            donor_id: ID of the donor
         """
         try:
             # Check if tax pool has sufficient balance
-            pool_balance = self.get_wallet_balance(self.tax_pool)
+            pool_balance = self.get_wallet_balance(self.donation_pool)
             if pool_balance < amount_xrp:
                 return {
                     "success": False,
                     "error": f"Insufficient balance in tax pool. Current balance: {pool_balance} XRP"
                 }
 
-            # Send from tax pool to government wallet
+            # Send from tax pool to who wallet
             amount_drops = xrp_to_drops(amount_xrp)
             payment_tx = Payment(
-                account=self.tax_pool.classic_address,
+                account=self.donation_pool.classic_address,
                 amount=amount_drops,
-                destination=self.gov_wallet.classic_address,
-                source_tag=int(hash(tax_payer_id) % (2**32))  # Convert tax_payer_id to a 32-bit integer for tracking
+                destination=self.ngo_wallet.classic_address,
+                source_tag=int(hash(donor_id) % (2**32))  # Convert donor_id to a 32-bit integer for tracking
             )
             
             # Process payment
             autofilled_tx = autofill(payment_tx, self.client)
-            signed_tx = sign(autofilled_tx, self.tax_pool)
+            signed_tx = sign(autofilled_tx, self.donation_pool)
             response = submit(signed_tx, self.client)
 
             if not response.is_successful():
@@ -143,7 +143,7 @@ class XRPLTaxSystem:
             return {
                 "success": True,
                 "message": "Tax payment processed successfully",
-                "tax_payer_id": tax_payer_id,
+                "donor_id": donor_id,
                 "amount": amount_xrp,
                 "tx_hash": tx_hash
             }
@@ -166,14 +166,14 @@ class XRPLTaxSystem:
         """
         try:
             # Get sender wallet
-            if sender == "GOV_WALLET":
-                sender_wallet = self.gov_wallet
-            elif sender == "tax_pool":
-                sender_wallet = self.tax_pool
+            if sender == "NGO_WALLET":
+                sender_wallet = self.ngo_wallet
+            elif sender == "donation_pool":
+                sender_wallet = self.donation_pool
             elif sender == "exit_pool":
                 sender_wallet = self.exit_pool
-            elif sender in self.department_wallets:
-                sender_wallet = self.department_wallets[sender]
+            elif sender in self.programme_wallets:
+                sender_wallet = self.programme_wallets[sender]
             else:
                 return {
                     "success": False,
@@ -181,14 +181,14 @@ class XRPLTaxSystem:
                 }
             
             # Get receiver wallet
-            if receiver == "GOV_WALLET":
-                receiver_wallet = self.gov_wallet
-            elif receiver == "tax_pool":
-                receiver_wallet = self.tax_pool
+            if receiver == "NGO_WALLET":
+                receiver_wallet = self.ngo_wallet
+            elif receiver == "donation_pool":
+                receiver_wallet = self.donation_pool
             elif receiver == "exit_pool":
                 receiver_wallet = self.exit_pool
-            elif receiver in self.department_wallets:
-                receiver_wallet = self.department_wallets[receiver]
+            elif receiver in self.programme_wallets:
+                receiver_wallet = self.programme_wallets[receiver]
             else:
                 return {
                     "success": False, 
@@ -255,19 +255,19 @@ class XRPLTaxSystem:
             }
 
     def get_all_balances(self):
-        """Return a dict of the government + department wallet balances."""
+        """Return a dict of the who + programme wallet balances."""
         return {
-            "government": self.get_wallet_balance(self.gov_wallet),
-            "dept_transport": self.get_wallet_balance(self.department_wallets["dept_transport"]),
-            "dept_labor": self.get_wallet_balance(self.department_wallets["dept_labor"]),
-            "dept_education": self.get_wallet_balance(self.department_wallets["dept_education"]),
-            "penn_dept_transport": self.get_wallet_balance(self.department_wallets["penn_dept_transport"]),
-            "penn_dept_labor": self.get_wallet_balance(self.department_wallets["penn_dept_labor"]),
-            "penn_dept_education": self.get_wallet_balance(self.department_wallets["penn_dept_education"]),
-            "pitt_dept_transport": self.get_wallet_balance(self.department_wallets["pitt_dept_transport"]),
-            "pitt_dept_labor": self.get_wallet_balance(self.department_wallets["pitt_dept_labor"]),
-            "pitt_dept_education": self.get_wallet_balance(self.department_wallets["pitt_dept_education"]),
-            "squirrel_hill_dept_transport": self.get_wallet_balance(self.department_wallets["squirrel_hill_dept_transport"]),
+            "who": self.get_wallet_balance(self.ngo_wallet),
+            "universal_health_coverage": self.get_wallet_balance(self.programme_wallets["universal_health_coverage"]),
+            "health_emergencies": self.get_wallet_balance(self.programme_wallets["health_emergencies"]),
+            "business_operations": self.get_wallet_balance(self.programme_wallets["business_operations"]),
+            "primary_health_care": self.get_wallet_balance(self.programme_wallets["primary_health_care"]),
+            "emergency_preparedness": self.get_wallet_balance(self.programme_wallets["emergency_preparedness"]),
+            "finance": self.get_wallet_balance(self.programme_wallets["finance"]),
+            "health_workforce": self.get_wallet_balance(self.programme_wallets["health_workforce"]),
+            "emergency_response": self.get_wallet_balance(self.programme_wallets["emergency_response"]),
+            "procurement_logistics": self.get_wallet_balance(self.programme_wallets["procurement_logistics"]),
+            "digital_health": self.get_wallet_balance(self.programme_wallets["digital_health"]),
         }
 
     def get_transactions(self, wallet=None):
@@ -283,12 +283,12 @@ class XRPLTaxSystem:
             else:
                 print("Checking transactions for all wallets")
                 wallets_to_check = [
-                    ('tax_pool', self.tax_pool),
-                    ('government', self.gov_wallet),
+                    ('donation_pool', self.donation_pool),
+                    ('who', self.ngo_wallet),
                     ('exit_pool', self.exit_pool)
                 ]
-                # Add all department wallets
-                for dept_id, dept_wallet in self.department_wallets.items():
+                # Add all programme wallets
+                for dept_id, dept_wallet in self.programme_wallets.items():
                     wallets_to_check.append((dept_id, dept_wallet))
 
             print(f"Total wallets to check: {len(wallets_to_check)}")
@@ -343,7 +343,7 @@ class XRPLTaxSystem:
                                 print("Missing sender or receiver")
                                 continue
                             
-                            # Convert addresses to department names
+                            # Convert addresses to programme names
                             sender_name = self._get_dept_name(sender)
                             receiver_name = self._get_dept_name(receiver)
                             if not sender_name or not receiver_name:
@@ -413,7 +413,7 @@ class XRPLTaxSystem:
             traceback.print_exc()
             return []
 
-    def get_department_hierarchy(self, dept_id):
+    def get_programme_hierarchy(self, dept_id):
         """
         Get hierarchical transaction data showing the entire transaction tree
         Returns aggregated transaction data showing full transaction flow
@@ -427,9 +427,9 @@ class XRPLTaxSystem:
             }
             
             # Initialize with all wallets
-            wallets_to_check = list(self.department_wallets.items())
-            wallets_to_check.append(('government', self.gov_wallet))
-            wallets_to_check.append(('tax_pool', self.tax_pool))
+            wallets_to_check = list(self.programme_wallets.items())
+            wallets_to_check.append(('who', self.ngo_wallet))
+            wallets_to_check.append(('donation_pool', self.donation_pool))
             wallets_to_check.append(('exit_pool', self.exit_pool))
             
             print(f"Total wallets to check: {len(wallets_to_check)}")
@@ -483,7 +483,7 @@ class XRPLTaxSystem:
                             'transactions': [tx]
                         })
             
-            # Calculate levels based on transaction flow from the selected department
+            # Calculate levels based on transaction flow from the selected programme
             def calculate_levels(start_dept, visited=None, level=0):
                 if visited is None:
                     visited = set()
@@ -493,18 +493,18 @@ class XRPLTaxSystem:
                 
                 visited.add(start_dept)
                 
-                # Update level for this department
+                # Update level for this programme
                 node = next(node for node in hierarchy_data['nodes'] if node['id'] == start_dept)
                 node['level'] = level
                 
                 # Find all outgoing transactions
                 outgoing_links = [link for link in hierarchy_data['links'] if link['source'] == start_dept]
                 
-                # Recursively update levels for connected departments
+                # Recursively update levels for connected programmes
                 for link in outgoing_links:
                     calculate_levels(link['target'], visited, level + 1)
             
-            # Calculate levels starting from the selected department
+            # Calculate levels starting from the selected programme
             calculate_levels(dept_id)
             
             # Calculate transaction metrics for all nodes
@@ -512,7 +512,7 @@ class XRPLTaxSystem:
                 dept = node['id']
                 dept_wallet = next(wallet for name, wallet in wallets_to_check if name == dept)
                 
-                # Get all transactions for this department
+                # Get all transactions for this programme
                 dept_txs = [tx for tx in all_transactions 
                            if tx['sender'] == dept or tx['receiver'] == dept]
                 
@@ -546,18 +546,18 @@ class XRPLTaxSystem:
             }
 
     def _get_dept_name(self, address: str) -> str:
-        """Helper to get department name from wallet address"""
+        """Helper to get programme name from wallet address"""
         try:
             # Check system wallets first
-            if address == self.tax_pool.classic_address:
-                return "tax_pool"
+            if address == self.donation_pool.classic_address:
+                return "donation_pool"
             if address == self.exit_pool.classic_address:
                 return "exit_pool"
-            if address == self.gov_wallet.classic_address:
-                return "government"
+            if address == self.ngo_wallet.classic_address:
+                return "who"
             
-            # Check department wallets
-            for dept_name, wallet in self.department_wallets.items():
+            # Check programme wallets
+            for dept_name, wallet in self.programme_wallets.items():
                 if address == wallet.classic_address:
                     return dept_name
             
@@ -569,7 +569,7 @@ class XRPLTaxSystem:
             return None
 
 # Instantiate the tax system once (global to the Flask app)
-tax_system = XRPLTaxSystem()
+charity_system = XRPLCharitySystem()
 
 # ------------------- FLASK ROUTES -------------------
 
@@ -586,16 +586,16 @@ def admin():
 @app.route('/api/balances', methods=['GET'])
 def get_balances():
     """Return JSON with current balances of all wallets."""
-    return jsonify(tax_system.get_all_balances())
+    return jsonify(charity_system.get_all_balances())
 
-@app.route('/api/pay-tax', methods=['POST'])
-def pay_tax():
-    """POST JSON: {"amount": number, "tax_payer_id": string}"""
+@app.route('/api/donate', methods=['POST'])
+def donate():
+    """POST JSON: {"amount": number, "donor_id": string}"""
     try:
         data = request.json
         amount = float(data["amount"])
-        tax_payer_id = data["tax_payer_id"]
-        result = tax_system.process_tax_payment(amount, tax_payer_id)
+        donor_id = data["donor_id"]
+        result = charity_system.process_donation(amount, donor_id)
         return jsonify(result)
     except Exception as e:
         return jsonify({"success": False, "error": str(e)}), 400
@@ -615,7 +615,7 @@ def transfer():
         receiver = data["receiver"]
         amount = float(data["amount"])
         
-        result = tax_system.distribute_funds(sender, receiver, amount)
+        result = charity_system.distribute_funds(sender, receiver, amount)
         return jsonify(result)
     except Exception as e:
         return jsonify({"success": False, "error": str(e)}), 400
@@ -624,7 +624,7 @@ def transfer():
 def get_transactions():
     """Get all transactions for the system"""
     try:
-        transactions = tax_system.get_transactions()
+        transactions = charity_system.get_transactions()
         return jsonify({
             "success": True,
             "transactions": transactions
@@ -646,14 +646,14 @@ def get_wallet_transactions(wallet_id):
     """Get transactions for a specific wallet"""
     try:
         # Get the wallet object based on wallet_id
-        if wallet_id == 'government':
-            wallet = tax_system.gov_wallet
-        elif wallet_id == 'tax_pool':
-            wallet = tax_system.tax_pool
+        if wallet_id == 'who':
+            wallet = charity_system.ngo_wallet
+        elif wallet_id == 'donation_pool':
+            wallet = charity_system.donation_pool
         elif wallet_id == 'exit_pool':
-            wallet = tax_system.exit_pool
-        elif wallet_id in tax_system.department_wallets:
-            wallet = tax_system.department_wallets[wallet_id]
+            wallet = charity_system.exit_pool
+        elif wallet_id in charity_system.programme_wallets:
+            wallet = charity_system.programme_wallets[wallet_id]
         else:
             return jsonify({
                 "success": False,
@@ -661,10 +661,10 @@ def get_wallet_transactions(wallet_id):
             }), 400
 
         # Get transactions for this wallet
-        transactions = tax_system.get_transactions(wallet)
+        transactions = charity_system.get_transactions(wallet)
         
         # Get current balance
-        balance = tax_system.get_wallet_balance(wallet)
+        balance = charity_system.get_wallet_balance(wallet)
         
         return jsonify({
             "success": True,
@@ -679,16 +679,16 @@ def get_wallet_transactions(wallet_id):
             "error": str(e)
         }), 400
 
-@app.route('/department-tracking')
-def department_tracking():
-    """Render the department tracking page"""
-    return render_template('department_tracking.html')
+@app.route('/programme-tracking')
+def programme_tracking():
+    """Render the programme tracking page"""
+    return render_template('programme_tracking.html')
 
-@app.route('/api/department-hierarchy/<dept_id>')
-def get_department_data(dept_id):
-    """Get hierarchical transaction data for a department"""
+@app.route('/api/programme-hierarchy/<dept_id>')
+def get_programme_data(dept_id):
+    """Get hierarchical transaction data for a programme"""
     try:
-        hierarchy_data = tax_system.get_department_hierarchy(dept_id)
+        hierarchy_data = charity_system.get_programme_hierarchy(dept_id)
         if hierarchy_data:
             return jsonify({
                 "success": True,
@@ -712,27 +712,27 @@ def get_transaction_tree():
         # Get all wallets and their balances
         nodes = []
         
-        # Add government wallet
-        gov_balance = tax_system.get_wallet_balance(tax_system.gov_wallet)
+        # Add who wallet
+        gov_balance = charity_system.get_wallet_balance(charity_system.ngo_wallet)
         nodes.append({
-            "id": "government",
-            "name": "Federal Government",
+            "id": "who",
+            "name": "World Health Organization",
             "balance": gov_balance,
             "totalSent": 0,
             "totalReceived": 0
         })
         
         # Add pool wallets
-        tax_balance = tax_system.get_wallet_balance(tax_system.tax_pool)
+        tax_balance = charity_system.get_wallet_balance(charity_system.donation_pool)
         nodes.append({
-            "id": "tax_pool",
-            "name": "Tax Pool",
+            "id": "donation_pool",
+            "name": "Donation Pool",
             "balance": tax_balance,
             "totalSent": 0,
             "totalReceived": 0
         })
         
-        exit_balance = tax_system.get_wallet_balance(tax_system.exit_pool)
+        exit_balance = charity_system.get_wallet_balance(charity_system.exit_pool)
         nodes.append({
             "id": "exit_pool",
             "name": "Exit Pool",
@@ -741,9 +741,9 @@ def get_transaction_tree():
             "totalReceived": 0
         })
         
-        # Add department wallets
-        for dept_id, wallet in tax_system.department_wallets.items():
-            balance = tax_system.get_wallet_balance(wallet)
+        # Add programme wallets
+        for dept_id, wallet in charity_system.programme_wallets.items():
+            balance = charity_system.get_wallet_balance(wallet)
             nodes.append({
                 "id": dept_id,
                 "name": dept_id.replace('_', ' ').title(),
@@ -753,7 +753,7 @@ def get_transaction_tree():
             })
             
         # Get all transactions
-        transactions = tax_system.get_transactions()
+        transactions = charity_system.get_transactions()
         
         # Create links and update totals
         links = []
@@ -802,17 +802,17 @@ def get_transaction_tree():
 if __name__ == '__main__':
     # Print out our wallets
     print("\n-- Government Wallet --")
-    print(f"  Seed: {tax_system.gov_wallet.seed}")
-    print(f"  Address: {tax_system.gov_wallet.classic_address}")
+    print(f"  Seed: {charity_system.ngo_wallet.seed}")
+    print(f"  Address: {charity_system.ngo_wallet.classic_address}")
 
     print("\n-- Department Wallets --")
-    for dept_name, wallet_obj in tax_system.department_wallets.items():
+    for dept_name, wallet_obj in charity_system.programme_wallets.items():
         print(f"  {dept_name} Seed: {wallet_obj.seed}")
         print(f"  {dept_name} Address: {wallet_obj.classic_address}")
 
     # Print initial balances
     print("\n-- Initial Balances --")
-    print(tax_system.get_all_balances())
+    print(charity_system.get_all_balances())
 
     # Start Flask server
-    app.run(debug=False, port=80, host='0.0.0.0')
+    app.run(debug=True, port=80, host='0.0.0.0')
