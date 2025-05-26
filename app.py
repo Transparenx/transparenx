@@ -801,7 +801,7 @@ def get_transaction_tree():
 # ------------------- MAIN ENTRY POINT -------------------
 if __name__ == '__main__':
     # Print out our wallets
-    print("\n-- Government Wallet --")
+    print("\n-- NGO Wallet --")
     print(f"  Seed: {charity_system.ngo_wallet.seed}")
     print(f"  Address: {charity_system.ngo_wallet.classic_address}")
 
@@ -815,4 +815,4 @@ if __name__ == '__main__':
     print(charity_system.get_all_balances())
 
     # Start Flask server
-    app.run(debug=True, port=80, host='0.0.0.0')
+    app.run(debug=False, port=int(os.environ.get("PORT", 80)), host='0.0.0.0')
